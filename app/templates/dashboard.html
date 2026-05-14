@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fleet Dashboard · PredictiveMx</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head>
+<body class="dashboard-body">
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="/" class="brand">
+        <span class="brand-mark"></span>
+        <span>PredictiveMx</span>
+      </a>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="#fleet">Fleet</a>
+        <a href="#unit">Unit detail</a>
+        <span id="last-updated" class="muted small"></span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="dashboard">
+    <header class="dash-header">
+      <div>
+        <h1>Fleet operations dashboard</h1>
+        <p class="muted">Live risk ranking, sensor traces, and forward forecasts for every machine in the holdout fleet.</p>
+      </div>
+      <button id="refresh-btn" class="btn btn-ghost">Refresh</button>
+    </header>
+
+    <section class="summary-row" id="summary-row">
+      <div class="stat-tile"><span class="stat-num" id="stat-total">·</span><span class="stat-lbl">Total units</span></div>
+      <div class="stat-tile stat-critical"><span class="stat-num" id="stat-critical">·</span><span class="stat-lbl">Critical</span></div>
+      <div class="stat-tile stat-watch"><span class="stat-num" id="stat-watch">·</span><span class="stat-lbl">Watch</span></div>
+      <div class="stat-tile stat-healthy"><span class="stat-num" id="stat-healthy">·</span><span class="stat-lbl">Healthy</span></div>
+    </section>
+
+    <section id="fleet" class="card">
+      <div class="card-head">
+        <h3>Fleet risk ranking</h3>
+        <span class="muted small">Click a row to inspect that unit</span>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="fleet-table">
+          <thead>
+            <tr>
+              <th>Unit</th><th>Latest cycle</th><th>Predicted RUL</th><th>Failure risk</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="unit" class="grid-2">
+      <div class="card">
+        <h3>Predicted vs actual RUL <span class="muted small" id="unit-title"></span></h3>
+        <div id="rul-chart" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>Failure risk over time</h3>
+        <div id="risk-chart" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>Sensor traces</h3>
+        <div id="sensor-chart" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>Sensor_3 decomposition (trend / seasonal / residual)</h3>
+        <div id="decomp-chart" class="chart"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
