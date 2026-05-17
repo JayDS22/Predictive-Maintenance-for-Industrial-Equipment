@@ -43,46 +43,19 @@ The dataset is synthetic by default (NASA C-MAPSS-style turbofan simulator), so 
 
 ## Architecture
 
-```
-                    ┌───────────────────────────────────────────────┐
-                    │  data/turbofan_synthetic.csv (or live stream) │
-                    │   100 units · 14 sensors · 3 op-settings      │
-                    └───────────────────────┬───────────────────────┘
-                                            ▼
-       ┌───────────────────────── Feature engineering ──────────────────────────┐
-       │  rolling{mean,std}_{5,10,20}   lag_{1,3,5}   ema_{5,20}                │
-       │  cycles_since_start            failure_within_threshold (RUL ≤ 30)     │
-       │  src/feature_engineering.py                                            │
-       └──────────────────────────────────┬─────────────────────────────────────┘
-                                          │
-              ┌───────────────────────────┴───────────────────────────┐
-              ▼                                                       ▼
-   ┌─────────────────────────┐                          ┌─────────────────────────┐
-   │ Regression ensemble     │                          │ Classification ensemble │
-   │  RF + XGBoost + LightGBM│                          │  RF + XGBoost + LightGBM│
-   │  ▸ predicted RUL        │                          │  ▸ failure-within-30    │
-   │  src/ensemble_model.py  │                          │  src/ensemble_model.py  │
-   └────────────┬────────────┘                          └────────────┬────────────┘
-                ▼                                                    ▼
-   ┌─────────────────────────┐                          ┌─────────────────────────┐
-   │ ARIMA(2,1,2) +          │                          │ Risk-band + recommended │
-   │ seasonal decomposition  │                          │ actions                 │
-   │ src/time_series_…       │                          │ src/predict.py          │
-   └────────────┬────────────┘                          └────────────┬────────────┘
-                └──────────────────────┬─────────────────────────────┘
-                                       ▼
-                       ┌───────────────────────────────────┐
-                       │   Flask API · app/app.py           │
-                       │   /api/fleet · /api/unit · /api…  │
-                       └───────────────────┬───────────────┘
-                                           ▼
-                       ┌───────────────────────────────────┐
-                       │  Interactive demo UI               │
-                       │  / (landing) · /dashboard          │
-                       └───────────────────────────────────┘
+```mermaid
+flowchart TD
+    SRC[(data/turbofan_synthetic.csv<br/>100 units · 14 sensors · 3 op-settings)]
+    SRC --> FE[Feature Engineering<br/>rolling mean/std 5/10/20<br/>lag 1/3/5, ema 5/20<br/>cycles_since_start<br/>failure_within_threshold RUL ≤ 30<br/>src/feature_engineering.py]
+    FE --> REG[Regression Ensemble<br/>RF + XGBoost + LightGBM<br/>predicted RUL<br/>src/ensemble_model.py]
+    FE --> CLS[Classification Ensemble<br/>RF + XGBoost + LightGBM<br/>failure-within-30<br/>src/ensemble_model.py]
+    REG --> TS[ARIMA 2,1,2 + seasonal decomposition<br/>src/time_series_…]
+    CLS --> RB[Risk-band + recommended actions<br/>src/predict.py]
+    TS --> API[Flask API · app/app.py<br/>/api/fleet · /api/unit · /api…]
+    RB --> API
+    API --> UI[Interactive demo UI<br/>/ landing · /dashboard]
 
-   Offline reporting path:
-   data → src/survival_analysis.R → Cox PH + Kaplan-Meier → reports/
+    OFFLINE[Offline reporting:<br/>data → src/survival_analysis.R<br/>→ Cox PH + Kaplan-Meier → reports/]
 ```
 
 ## Repository layout
